@@ -1,0 +1,1517 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>allday-term-agent: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">allday-term-agent/agent_factory.go (0.0%)</option>
+				
+				<option value="file1">allday-term-agent/agents/default/default.go (0.0%)</option>
+				
+				<option value="file2">allday-term-agent/agents/examples/examples.go (0.0%)</option>
+				
+				<option value="file3">allday-term-agent/agents/math/math.go (0.0%)</option>
+				
+				<option value="file4">allday-term-agent/agents/weather/weather.go (0.0%)</option>
+				
+				<option value="file5">allday-term-agent/main.go (0.0%)</option>
+				
+				<option value="file6">allday-term-agent/models/models.go (23.5%)</option>
+				
+				<option value="file7">allday-term-agent/router.go (0.0%)</option>
+				
+				<option value="file8">allday-term-agent/storage/storage.go (64.4%)</option>
+				
+				<option value="file9">allday-term-agent/utils/openai.go (85.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package main
+
+import (
+        "os"
+        "strconv"
+
+        defaultagent "allday-term-agent/agents/default"
+        mathagent "allday-term-agent/agents/math"
+        weatheragent "allday-term-agent/agents/weather"
+        "allday-term-agent/models"
+)
+
+// NewAgentFactory creates a new agent factory
+func NewAgentFactory() *AgentFactory <span class="cov0" title="0">{
+        return &amp;AgentFactory{
+                config: LoadAgentConfig(),
+        }
+}</span>
+
+// LoadAgentConfig loads agent configuration from environment variables
+func LoadAgentConfig() *models.AgentConfig <span class="cov0" title="0">{
+        config := &amp;models.AgentConfig{
+                EnableExampleAgents: getBoolEnv("ENABLE_EXAMPLE_AGENTS", false),
+                EnableCodeReview:    getBoolEnv("ENABLE_CODE_REVIEW_AGENT", false),
+                EnableDataAnalysis:  getBoolEnv("ENABLE_DATA_ANALYSIS_AGENT", false),
+                WeatherAPIKey:       os.Getenv("WEATHER_API_KEY"),
+                CustomAgentPriority: make(map[string]models.AgentPriority),
+        }
+        return config
+}</span>
+
+// getBoolEnv gets a boolean environment variable with a default value
+func getBoolEnv(key string, defaultValue bool) bool <span class="cov0" title="0">{
+        if value := os.Getenv(key); value != "" </span><span class="cov0" title="0">{
+                if parsed, err := strconv.ParseBool(value); err == nil </span><span class="cov0" title="0">{
+                        return parsed
+                }</span>
+        }
+        <span class="cov0" title="0">return defaultValue</span>
+}
+
+// AgentFactory creates and configures agents based on configuration
+type AgentFactory struct {
+        config *models.AgentConfig
+}
+
+// CreateAgentRouter creates a router with agents based on configuration
+func (f *AgentFactory) CreateAgentRouter() *AgentRouter <span class="cov0" title="0">{
+        router := &amp;AgentRouter{
+                registrations: make([]models.AgentRegistration, 0),
+        }
+        f.registerCoreAgents(router)
+        router.sortAgentsByPriority()
+        return router
+}</span>
+
+// registerCoreAgents registers the core agents (Math, Weather, Default)
+func (f *AgentFactory) registerCoreAgents(router *AgentRouter) <span class="cov0" title="0">{
+        router.RegisterAgent(mathagent.New(), models.AgentRegistration{
+                Priority: models.PriorityHigh,
+                Enabled:  true,
+                Tags:     []string{"math", "calculation", "computation"},
+        })
+
+        if f.config.WeatherAPIKey != "" </span><span class="cov0" title="0">{
+                router.RegisterAgent(weatheragent.NewEnhanced(), models.AgentRegistration{
+                        Priority: models.PriorityMedium,
+                        Enabled:  true,
+                        Tags:     []string{"weather", "forecast", "climate", "enhanced", "realtime"},
+                })
+        }</span> else<span class="cov0" title="0"> {
+                router.RegisterAgent(weatheragent.NewBasic(), models.AgentRegistration{
+                        Priority: models.PriorityMedium,
+                        Enabled:  true,
+                        Tags:     []string{"weather", "forecast", "climate", "basic"},
+                })
+        }</span>
+
+        <span class="cov0" title="0">router.RegisterAgent(defaultagent.New(), models.AgentRegistration{
+                Priority: models.PriorityDefault,
+                Enabled:  true,
+                Tags:     []string{"general", "default", "fallback"},
+        })</span>
+}
+
+// GetConfig returns the current configuration
+func (f *AgentFactory) GetConfig() *models.AgentConfig <span class="cov0" title="0">{
+        return f.config
+}</span>
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package defaultagent
+
+import (
+        "allday-term-agent/utils"
+
+        "github.com/openai/openai-go"
+)
+
+// DefaultAgent handles general conversations using OpenAI
+type DefaultAgent struct{}
+
+func New() *DefaultAgent <span class="cov0" title="0">{
+        return &amp;DefaultAgent{}
+}</span>
+
+func (a *DefaultAgent) CanHandle(prompt string) bool <span class="cov0" title="0">{
+        return true // Default agent can handle anything
+}</span>
+
+func (a *DefaultAgent) Handle(prompt string, client *openai.Client, model string) (string, error) <span class="cov0" title="0">{
+        return utils.GetOpenAIResponse(client, prompt, model)
+}</span>
+
+func (a *DefaultAgent) GetName() string <span class="cov0" title="0">{
+        return "Default"
+}</span>
+
+func (a *DefaultAgent) GetDescription() string <span class="cov0" title="0">{
+        return "General conversation agent using OpenAI models"
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package examples
+
+import (
+        "context"
+        "fmt"
+        "regexp"
+        "strings"
+
+        "github.com/openai/openai-go"
+)
+
+// CodeReviewAgent - Example of how to add a new agent dynamically
+type CodeReviewAgent struct{}
+
+// DataAnalysisAgent - Example agent for data analysis tasks
+type DataAnalysisAgent struct{}
+
+// NewCodeReview creates a new code review agent
+func NewCodeReview() *CodeReviewAgent <span class="cov0" title="0">{
+        return &amp;CodeReviewAgent{}
+}</span>
+
+// NewDataAnalysis creates a new data analysis agent
+func NewDataAnalysis() *DataAnalysisAgent <span class="cov0" title="0">{
+        return &amp;DataAnalysisAgent{}
+}</span>
+
+// CodeReviewAgent methods
+func (a *CodeReviewAgent) CanHandle(prompt string) bool <span class="cov0" title="0">{
+        codeKeywords := []string{
+                "review", "code", "refactor", "optimize", "debug", "improve",
+                "function", "class", "method", "variable", "algorithm",
+                "performance", "bug", "error", "syntax", "logic",
+                "clean code", "best practice", "design pattern",
+        }
+
+        promptLower := strings.ToLower(prompt)
+
+        // Check for keywords
+        for _, keyword := range codeKeywords </span><span class="cov0" title="0">{
+                if strings.Contains(promptLower, keyword) </span><span class="cov0" title="0">{
+                        return true
+                }</span>
+        }
+
+        // Check for code patterns (basic detection)
+        <span class="cov0" title="0">codePatterns := []string{
+                `\bdef\s+\w+\(`,      // Python functions
+                `\bfunction\s+\w+\(`, // JavaScript functions
+                `\bfunc\s+\w+\(`,     // Go functions
+                `\bclass\s+\w+`,      // Class definitions
+                `\bif\s+.*\{`,        // If statements with braces
+                `\bfor\s+.*\{`,       // For loops with braces
+                `\w+\(\)\s*\{`,       // Method calls with braces
+        }
+
+        for _, pattern := range codePatterns </span><span class="cov0" title="0">{
+                matched, _ := regexp.MatchString(pattern, prompt)
+                if matched </span><span class="cov0" title="0">{
+                        return true
+                }</span>
+        }
+
+        <span class="cov0" title="0">return false</span>
+}
+
+func (a *CodeReviewAgent) Handle(prompt string, client *openai.Client, model string) (string, error) <span class="cov0" title="0">{
+        reviewContext := `You are a senior software engineer and code reviewer. The user is asking about code review, optimization, debugging, or software engineering best practices.
+
+Guidelines:
+1. For code snippets, provide detailed analysis and suggestions
+2. Focus on readability, maintainability, and performance
+3. Suggest specific improvements with examples
+4. Identify potential bugs or issues
+5. Recommend best practices and design patterns
+6. Consider security implications where relevant
+7. Provide clear explanations for your recommendations
+8. Use proper code formatting in your responses
+
+Provide thorough, professional code review feedback.`
+
+        ctx := context.Background()
+        messages := []openai.ChatCompletionMessageParamUnion{
+                openai.SystemMessage(reviewContext),
+                openai.UserMessage(prompt),
+        }
+
+        completion, err := client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
+                Messages: messages,
+                Model:    model,
+        })
+
+        if err != nil </span><span class="cov0" title="0">{
+                return "", fmt.Errorf("failed to get code review response: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">if len(completion.Choices) == 0 </span><span class="cov0" title="0">{
+                return "", fmt.Errorf("no code review response from OpenAI")
+        }</span>
+
+        <span class="cov0" title="0">return "👨‍💻 [Code Review Agent] " + completion.Choices[0].Message.Content, nil</span>
+}
+
+func (a *CodeReviewAgent) GetName() string <span class="cov0" title="0">{
+        return "CodeReview"
+}</span>
+
+func (a *CodeReviewAgent) GetDescription() string <span class="cov0" title="0">{
+        return "Specialized agent for code review, optimization, and debugging assistance"
+}</span>
+
+// DataAnalysisAgent methods
+func (a *DataAnalysisAgent) CanHandle(prompt string) bool <span class="cov0" title="0">{
+        dataKeywords := []string{
+                "data", "analysis", "analyze", "dataset", "statistics", "stats",
+                "visualization", "chart", "graph", "plot", "pandas", "numpy",
+                "machine learning", "ml", "model", "regression", "classification",
+                "correlation", "distribution", "mean", "median", "variance",
+                "csv", "excel", "database", "sql", "query", "aggregate",
+                "trend", "pattern", "insight", "metric", "kpi",
+        }
+
+        promptLower := strings.ToLower(prompt)
+
+        for _, keyword := range dataKeywords </span><span class="cov0" title="0">{
+                if strings.Contains(promptLower, keyword) </span><span class="cov0" title="0">{
+                        return true
+                }</span>
+        }
+
+        <span class="cov0" title="0">return false</span>
+}
+
+func (a *DataAnalysisAgent) Handle(prompt string, client *openai.Client, model string) (string, error) <span class="cov0" title="0">{
+        analysisContext := `You are a data scientist and analysis expert. The user is asking about data analysis, statistics, visualization, or machine learning topics.
+
+Guidelines:
+1. For data analysis questions, provide step-by-step approaches
+2. Suggest appropriate statistical methods and tools
+3. Recommend suitable visualization techniques
+4. Include Python/R code examples where helpful
+5. Explain statistical concepts clearly
+6. Consider data quality and preprocessing steps
+7. Suggest relevant libraries (pandas, numpy, matplotlib, seaborn, etc.)
+8. Provide interpretations of results when applicable
+
+Provide expert-level data analysis guidance and insights.`
+
+        ctx := context.Background()
+        messages := []openai.ChatCompletionMessageParamUnion{
+                openai.SystemMessage(analysisContext),
+                openai.UserMessage(prompt),
+        }
+
+        completion, err := client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
+                Messages: messages,
+                Model:    model,
+        })
+
+        if err != nil </span><span class="cov0" title="0">{
+                return "", fmt.Errorf("failed to get data analysis response: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">if len(completion.Choices) == 0 </span><span class="cov0" title="0">{
+                return "", fmt.Errorf("no data analysis response from OpenAI")
+        }</span>
+
+        <span class="cov0" title="0">return "📊 [Data Analysis Agent] " + completion.Choices[0].Message.Content, nil</span>
+}
+
+func (a *DataAnalysisAgent) GetName() string <span class="cov0" title="0">{
+        return "DataAnalysis"
+}</span>
+
+func (a *DataAnalysisAgent) GetDescription() string <span class="cov0" title="0">{
+        return "Specialized agent for data analysis, statistics, and machine learning tasks"
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package mathagent
+
+import (
+        "context"
+        "fmt"
+        "regexp"
+        "strings"
+
+        "github.com/openai/openai-go"
+)
+
+// MathAgent handles mathematical calculations and problems
+type MathAgent struct{}
+
+func New() *MathAgent <span class="cov0" title="0">{
+        return &amp;MathAgent{}
+}</span>
+
+func (a *MathAgent) CanHandle(prompt string) bool <span class="cov0" title="0">{
+        mathKeywords := []string{
+                "calculate", "compute", "solve", "math", "equation", "formula",
+                "add", "subtract", "multiply", "divide", "plus", "minus", "times",
+                "square", "root", "power", "logarithm", "sin", "cos", "tan",
+                "derivative", "integral", "geometry", "algebra", "trigonometry",
+                "percentage", "percent", "fraction", "decimal", "probability",
+        }
+
+        mathSymbols := []string{
+                "+", "-", "*", "/", "=", "^", "√", "∫", "∂", "%",
+                "π", "e", "∞", "≈", "≠", "≤", "≥", "&lt;", "&gt;",
+        }
+
+        promptLower := strings.ToLower(prompt)
+
+        // Check for keywords
+        for _, keyword := range mathKeywords </span><span class="cov0" title="0">{
+                if strings.Contains(promptLower, keyword) </span><span class="cov0" title="0">{
+                        return true
+                }</span>
+        }
+
+        // Check for mathematical symbols
+        <span class="cov0" title="0">for _, symbol := range mathSymbols </span><span class="cov0" title="0">{
+                if strings.Contains(prompt, symbol) </span><span class="cov0" title="0">{
+                        return true
+                }</span>
+        }
+
+        // Check for number patterns that might indicate calculations
+        <span class="cov0" title="0">numberPattern := regexp.MustCompile(`\d+\s*[+\-*/^]\s*\d+`)
+        if numberPattern.MatchString(prompt) </span><span class="cov0" title="0">{
+                return true
+        }</span>
+
+        <span class="cov0" title="0">return false</span>
+}
+
+func (a *MathAgent) Handle(prompt string, client *openai.Client, model string) (string, error) <span class="cov0" title="0">{
+        mathContext := `You are a mathematical expert and calculator. The user is asking about mathematical problems, calculations, or concepts.
+
+Guidelines:
+1. For numerical calculations, provide step-by-step solutions
+2. Show your work clearly with intermediate steps
+3. For complex math concepts, provide clear explanations with examples
+4. Use proper mathematical notation when helpful
+5. If the problem involves specific formulas, mention them
+6. For word problems, break down the problem into mathematical components
+7. Always double-check your calculations
+8. If approximate, clearly state it's an approximation
+
+Provide accurate, educational, and well-structured mathematical responses.`
+
+        ctx := context.Background()
+        messages := []openai.ChatCompletionMessageParamUnion{
+                openai.SystemMessage(mathContext),
+                openai.UserMessage(prompt),
+        }
+
+        completion, err := client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
+                Messages: messages,
+                Model:    model,
+        })
+
+        if err != nil </span><span class="cov0" title="0">{
+                return "", fmt.Errorf("failed to get math response: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">if len(completion.Choices) == 0 </span><span class="cov0" title="0">{
+                return "", fmt.Errorf("no math response from OpenAI")
+        }</span>
+
+        <span class="cov0" title="0">return "🧮 [Math Agent] " + completion.Choices[0].Message.Content, nil</span>
+}
+
+func (a *MathAgent) GetName() string <span class="cov0" title="0">{
+        return "Math"
+}</span>
+
+func (a *MathAgent) GetDescription() string <span class="cov0" title="0">{
+        return "Specialized agent for mathematical calculations, problems, and concepts"
+}</span>
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package weatheragent
+
+import (
+        "context"
+        "encoding/json"
+        "fmt"
+        "net/http"
+        "os"
+        "regexp"
+        "strings"
+
+        "github.com/openai/openai-go"
+)
+
+// WeatherAgent handles weather-related queries (basic version)
+type WeatherAgent struct{}
+
+// EnhancedWeatherAgent handles weather-related queries with real API data
+type EnhancedWeatherAgent struct{}
+
+// WeatherAPIResponse represents the structure of a weather API response
+type WeatherAPIResponse struct {
+        Location struct {
+                Name    string `json:"name"`
+                Country string `json:"country"`
+        } `json:"location"`
+        Current struct {
+                TempC     float64 `json:"temp_c"`
+                TempF     float64 `json:"temp_f"`
+                Condition struct {
+                        Text string `json:"text"`
+                } `json:"condition"`
+                Humidity int     `json:"humidity"`
+                WindKph  float64 `json:"wind_kph"`
+        } `json:"current"`
+}
+
+// NewBasic creates a new basic weather agent
+func NewBasic() *WeatherAgent <span class="cov0" title="0">{
+        return &amp;WeatherAgent{}
+}</span>
+
+// NewEnhanced creates a new enhanced weather agent
+func NewEnhanced() *EnhancedWeatherAgent <span class="cov0" title="0">{
+        return &amp;EnhancedWeatherAgent{}
+}</span>
+
+// Basic WeatherAgent methods
+func (a *WeatherAgent) CanHandle(prompt string) bool <span class="cov0" title="0">{
+        return canHandleWeatherPrompt(prompt)
+}</span>
+
+func (a *WeatherAgent) Handle(prompt string, client *openai.Client, model string) (string, error) <span class="cov0" title="0">{
+        weatherContext := `You are a weather expert assistant. The user is asking about weather-related topics. 
+        Provide helpful, accurate weather information. If they're asking about a specific location's weather, 
+        let them know you don't have access to real-time weather data, but you can provide general weather 
+        information, climate patterns, or suggest reliable weather sources like weather.com, weather.gov, or local meteorological services.
+        
+        If they're asking about weather concepts, phenomena, or general weather questions, provide detailed and educational responses.`
+
+        ctx := context.Background()
+        messages := []openai.ChatCompletionMessageParamUnion{
+                openai.SystemMessage(weatherContext),
+                openai.UserMessage(prompt),
+        }
+
+        completion, err := client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
+                Messages: messages,
+                Model:    model,
+        })
+
+        if err != nil </span><span class="cov0" title="0">{
+                return "", fmt.Errorf("failed to get weather response: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">if len(completion.Choices) == 0 </span><span class="cov0" title="0">{
+                return "", fmt.Errorf("no weather response from OpenAI")
+        }</span>
+
+        <span class="cov0" title="0">return "🌤️ [Weather Agent] " + completion.Choices[0].Message.Content, nil</span>
+}
+
+func (a *WeatherAgent) GetName() string <span class="cov0" title="0">{
+        return "Weather"
+}</span>
+
+func (a *WeatherAgent) GetDescription() string <span class="cov0" title="0">{
+        return "Specialized agent for weather-related queries and information"
+}</span>
+
+// Enhanced WeatherAgent methods
+func (a *EnhancedWeatherAgent) CanHandle(prompt string) bool <span class="cov0" title="0">{
+        return canHandleWeatherPrompt(prompt)
+}</span>
+
+func (a *EnhancedWeatherAgent) Handle(prompt string, client *openai.Client, model string) (string, error) <span class="cov0" title="0">{
+        location := a.extractLocation(prompt)
+
+        if location != "" </span><span class="cov0" title="0">{
+                weatherData, err := a.fetchWeatherData(location)
+                if err == nil </span><span class="cov0" title="0">{
+                        weatherInfo := fmt.Sprintf(`🌤️ [Enhanced Weather Agent] Current weather for %s, %s:
+• Temperature: %.1f°C (%.1f°F)
+• Condition: %s
+• Humidity: %d%%
+• Wind: %.1f km/h
+
+This is real-time weather data from WeatherAPI.com.`,
+                                weatherData.Location.Name,
+                                weatherData.Location.Country,
+                                weatherData.Current.TempC,
+                                weatherData.Current.TempF,
+                                weatherData.Current.Condition.Text,
+                                weatherData.Current.Humidity,
+                                weatherData.Current.WindKph)
+
+                        return weatherInfo, nil
+                }</span>
+        }
+
+        // Fallback to AI-powered weather assistant
+        <span class="cov0" title="0">weatherContext := fmt.Sprintf(`You are a weather expert assistant. The user is asking about weather-related topics%s. 
+        Provide helpful, accurate weather information. Since you don't have access to real-time weather data, 
+        provide general weather information, climate patterns, or suggest reliable weather sources like weather.com, 
+        weather.gov, AccuWeather, or local meteorological services.
+        
+        If they're asking about weather concepts, phenomena, or general weather questions, provide detailed and educational responses.`,
+                func() string </span><span class="cov0" title="0">{
+                        if location != "" </span><span class="cov0" title="0">{
+                                return fmt.Sprintf(" for %s", location)
+                        }</span>
+                        <span class="cov0" title="0">return ""</span>
+                }())
+
+        <span class="cov0" title="0">ctx := context.Background()
+        messages := []openai.ChatCompletionMessageParamUnion{
+                openai.SystemMessage(weatherContext),
+                openai.UserMessage(prompt),
+        }
+
+        completion, err := client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
+                Messages: messages,
+                Model:    model,
+        })
+
+        if err != nil </span><span class="cov0" title="0">{
+                return "", fmt.Errorf("failed to get weather response: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">if len(completion.Choices) == 0 </span><span class="cov0" title="0">{
+                return "", fmt.Errorf("no weather response from OpenAI")
+        }</span>
+
+        <span class="cov0" title="0">return "🌤️ [Enhanced Weather Agent] " + completion.Choices[0].Message.Content, nil</span>
+}
+
+func (a *EnhancedWeatherAgent) GetName() string <span class="cov0" title="0">{
+        return "Enhanced Weather"
+}</span>
+
+func (a *EnhancedWeatherAgent) GetDescription() string <span class="cov0" title="0">{
+        return "Advanced weather agent with real-time data (requires WEATHER_API_KEY) and AI fallback"
+}</span>
+
+func (a *EnhancedWeatherAgent) extractLocation(prompt string) string <span class="cov0" title="0">{
+        locationPatterns := []string{
+                `(?i)weather\s+in\s+([a-zA-Z\s,]+?)(?:\s|$|\?)`,
+                `(?i)temperature\s+in\s+([a-zA-Z\s,]+?)(?:\s|$|\?)`,
+                `(?i)forecast\s+for\s+([a-zA-Z\s,]+?)(?:\s|$|\?)`,
+                `(?i)what.*weather.*in\s+([a-zA-Z\s,]+?)(?:\s|$|\?)`,
+        }
+
+        for _, pattern := range locationPatterns </span><span class="cov0" title="0">{
+                re := regexp.MustCompile(pattern)
+                matches := re.FindStringSubmatch(prompt)
+                if len(matches) &gt; 1 </span><span class="cov0" title="0">{
+                        location := strings.TrimSpace(matches[1])
+                        location = regexp.MustCompile(`(?i)\s+(today|tomorrow|now|currently)$`).ReplaceAllString(location, "")
+                        return strings.TrimSpace(location)
+                }</span>
+        }
+        <span class="cov0" title="0">return ""</span>
+}
+
+func (a *EnhancedWeatherAgent) fetchWeatherData(location string) (*WeatherAPIResponse, error) <span class="cov0" title="0">{
+        apiKey := os.Getenv("WEATHER_API_KEY")
+        if apiKey == "" </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("no weather API key available")
+        }</span>
+
+        <span class="cov0" title="0">url := fmt.Sprintf("http://api.weatherapi.com/v1/current.json?key=%s&amp;q=%s&amp;aqi=no", apiKey, location)
+
+        resp, err := http.Get(url)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to fetch weather data: %w", err)
+        }</span>
+        <span class="cov0" title="0">defer resp.Body.Close()
+
+        if resp.StatusCode != 200 </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("weather API returned status %d", resp.StatusCode)
+        }</span>
+
+        <span class="cov0" title="0">var weatherData WeatherAPIResponse
+        if err := json.NewDecoder(resp.Body).Decode(&amp;weatherData); err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to parse weather data: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">return &amp;weatherData, nil</span>
+}
+
+// Shared helper function
+func canHandleWeatherPrompt(prompt string) bool <span class="cov0" title="0">{
+        weatherKeywords := []string{
+                "weather", "temperature", "rain", "snow", "sunny", "cloudy", "forecast",
+                "hot", "cold", "humid", "wind", "storm", "hurricane", "tornado",
+                "celsius", "fahrenheit", "degrees", "precipitation", "humidity",
+        }
+
+        promptLower := strings.ToLower(prompt)
+        for _, keyword := range weatherKeywords </span><span class="cov0" title="0">{
+                if strings.Contains(promptLower, keyword) </span><span class="cov0" title="0">{
+                        return true
+                }</span>
+        }
+        <span class="cov0" title="0">return false</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package main
+
+import (
+        "bufio"
+        "fmt"
+        "log"
+        "os"
+        "strings"
+
+        "allday-term-agent/models"
+        "allday-term-agent/storage"
+        "allday-term-agent/utils"
+
+        "github.com/openai/openai-go"
+        "github.com/openai/openai-go/option"
+)
+
+func main() <span class="cov0" title="0">{
+        // Get OpenAI API key from environment variable
+        apiKey := os.Getenv("OPENAI_API_KEY")
+        if apiKey == "" </span><span class="cov0" title="0">{
+                log.Fatal("OPENAI_API_KEY environment variable is required")
+        }</span>
+
+        // Create OpenAI client
+        <span class="cov0" title="0">client := openai.NewClient(
+                option.WithAPIKey(apiKey),
+        )
+
+        // Create agent factory and initialize router
+        factory := NewAgentFactory()
+        router := factory.CreateAgentRouter()
+
+        fmt.Println("🤖 OpenAI Terminal Assistant with Agentic Routing")
+
+        // Let user select model
+        selectedModel := models.SelectModel()
+        modelDisplayName := models.GetModelDisplayName(selectedModel)
+
+        fmt.Printf("\n✨ Using model: %s\n", modelDisplayName)
+        fmt.Println("Commands: 'quit', '/model', '/agents', '/status', '/config', '/enable &lt;agent&gt;', '/disable &lt;agent&gt;', '/tag &lt;tag&gt;', '/store', '/load', '/list'")
+        fmt.Println("─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────")
+
+        scanner := bufio.NewScanner(os.Stdin)
+        var lastPrompt, lastResponse string
+
+        for </span><span class="cov0" title="0">{
+                fmt.Print("\n💬 You: ")
+
+                // Read user input
+                if !scanner.Scan() </span><span class="cov0" title="0">{
+                        break</span>
+                }
+
+                <span class="cov0" title="0">input := strings.TrimSpace(scanner.Text())
+
+                // Check for exit commands
+                if input == "quit" || input == "exit" </span><span class="cov0" title="0">{
+                        fmt.Println("👋 Goodbye!")
+                        break</span>
+                }
+
+                // Check for model change command
+                <span class="cov0" title="0">if input == "/model" </span><span class="cov0" title="0">{
+                        selectedModel = models.SelectModel()
+                        modelDisplayName = models.GetModelDisplayName(selectedModel)
+                        fmt.Printf("\n✨ Switched to model: %s\n", modelDisplayName)
+                        continue</span>
+                }
+
+                // Check for store command
+                <span class="cov0" title="0">if input == "/store" </span><span class="cov0" title="0">{
+                        if lastPrompt != "" &amp;&amp; lastResponse != "" </span><span class="cov0" title="0">{
+                                if err := storage.StoreOpenAIResponse(lastPrompt, lastResponse, selectedModel); err != nil </span><span class="cov0" title="0">{
+                                        fmt.Printf("❌ Error storing response: %v\n", err)
+                                }</span> else<span class="cov0" title="0"> {
+                                        fmt.Println("💾 Response saved to file!")
+                                }</span>
+                        } else<span class="cov0" title="0"> {
+                                fmt.Println("❌ No previous conversation to store.")
+                        }</span>
+                        <span class="cov0" title="0">continue</span>
+                }
+
+                // Check for load command
+                <span class="cov0" title="0">if input == "/load" </span><span class="cov0" title="0">{
+                        filename, err := storage.SelectConversationFile()
+                        if err != nil </span><span class="cov0" title="0">{
+                                fmt.Printf("❌ Error: %v\n", err)
+                                continue</span>
+                        }
+
+                        <span class="cov0" title="0">if filename != "" </span><span class="cov0" title="0">{
+                                // Load and display the conversation
+                                model, prompt, response, err := storage.LoadConversation(filename)
+                                if err != nil </span><span class="cov0" title="0">{
+                                        fmt.Printf("❌ Error loading conversation: %v\n", err)
+                                }</span> else<span class="cov0" title="0"> {
+                                        fmt.Printf("📂 Loaded conversation from %s\n", filename)
+                                        fmt.Printf("Model: %s\nUser: %s\nAssistant: %s\n", model, prompt, response)
+
+                                        // Set the loaded conversation as the current context
+                                        lastPrompt = prompt
+                                        lastResponse = response
+
+                                        // Switch to the model used in the loaded conversation
+                                        selectedModel = model
+                                        modelDisplayName = models.GetModelDisplayName(selectedModel)
+                                        fmt.Printf("\n✨ Switched to model: %s\n", modelDisplayName)
+                                        fmt.Println("💡 You can now continue the conversation from where it left off!")
+                                }</span>
+                        }
+                        <span class="cov0" title="0">continue</span>
+                }
+
+                // Check for agents command
+                <span class="cov0" title="0">if input == "/agents" </span><span class="cov0" title="0">{
+                        fmt.Println("\n🤖 Available Agents:")
+                        fmt.Println("─────────────────────")
+                        agents := router.ListAgents()
+                        for i, agent := range agents </span><span class="cov0" title="0">{
+                                fmt.Printf("%d. %s Agent - %s\n", i+1, agent.GetName(), agent.GetDescription())
+                        }</span>
+                        <span class="cov0" title="0">continue</span>
+                }
+
+                // Check for agent status command
+                <span class="cov0" title="0">if input == "/status" </span><span class="cov0" title="0">{
+                        fmt.Println(router.GetAgentStatus())
+                        continue</span>
+                }
+
+                // Check for agent enable/disable commands
+                <span class="cov0" title="0">if strings.HasPrefix(input, "/enable ") </span><span class="cov0" title="0">{
+                        agentName := strings.TrimSpace(strings.TrimPrefix(input, "/enable "))
+                        if router.EnableAgent(agentName, true) </span><span class="cov0" title="0">{
+                                fmt.Printf("✅ %s Agent enabled\n", agentName)
+                        }</span> else<span class="cov0" title="0"> {
+                                fmt.Printf("❌ Agent '%s' not found\n", agentName)
+                        }</span>
+                        <span class="cov0" title="0">continue</span>
+                }
+
+                <span class="cov0" title="0">if strings.HasPrefix(input, "/disable ") </span><span class="cov0" title="0">{
+                        agentName := strings.TrimSpace(strings.TrimPrefix(input, "/disable "))
+                        if router.EnableAgent(agentName, false) </span><span class="cov0" title="0">{
+                                fmt.Printf("❌ %s Agent disabled\n", agentName)
+                        }</span> else<span class="cov0" title="0"> {
+                                fmt.Printf("❌ Agent '%s' not found\n", agentName)
+                        }</span>
+                        <span class="cov0" title="0">continue</span>
+                }
+
+                // Check for tag-based agent listing
+                <span class="cov0" title="0">if strings.HasPrefix(input, "/tag ") </span><span class="cov0" title="0">{
+                        tag := strings.TrimSpace(strings.TrimPrefix(input, "/tag "))
+                        agents := router.GetAgentsByTag(tag)
+                        if len(agents) == 0 </span><span class="cov0" title="0">{
+                                fmt.Printf("🏷️ No agents found with tag '%s'\n", tag)
+                        }</span> else<span class="cov0" title="0"> {
+                                fmt.Printf("\n🏷️ Agents with tag '%s':\n", tag)
+                                fmt.Println("─────────────────────")
+                                for i, agent := range agents </span><span class="cov0" title="0">{
+                                        fmt.Printf("%d. %s Agent - %s\n", i+1, agent.GetName(), agent.GetDescription())
+                                }</span>
+                        }
+                        <span class="cov0" title="0">continue</span>
+                }
+
+                // Check for configuration command
+                <span class="cov0" title="0">if input == "/config" </span><span class="cov0" title="0">{
+                        config := factory.GetConfig()
+                        fmt.Println("\n⚙️ Agent Configuration:")
+                        fmt.Println("─────────────────────")
+                        fmt.Printf("Example Agents Enabled: %v\n", config.EnableExampleAgents)
+                        fmt.Printf("Code Review Agent: %v\n", config.EnableCodeReview)
+                        fmt.Printf("Data Analysis Agent: %v\n", config.EnableDataAnalysis)
+                        fmt.Printf("Weather API Key: %s\n", func() string </span><span class="cov0" title="0">{
+                                if config.WeatherAPIKey != "" </span><span class="cov0" title="0">{
+                                        return "✅ Configured"
+                                }</span>
+                                <span class="cov0" title="0">return "❌ Not set"</span>
+                        }())
+                        <span class="cov0" title="0">if len(config.CustomAgentPriority) &gt; 0 </span><span class="cov0" title="0">{
+                                fmt.Println("Custom Priorities:")
+                                for agent, priority := range config.CustomAgentPriority </span><span class="cov0" title="0">{
+                                        fmt.Printf("  %s: %d\n", agent, priority)
+                                }</span>
+                        }
+                        <span class="cov0" title="0">continue</span>
+                }
+
+                // Check for list command
+                <span class="cov0" title="0">if input == "/list" </span><span class="cov0" title="0">{
+                        conversations, err := storage.ListConversationFiles()
+                        if err != nil </span><span class="cov0" title="0">{
+                                fmt.Printf("❌ Error: %v\n", err)
+                                continue</span>
+                        }
+
+                        <span class="cov0" title="0">if len(conversations) == 0 </span><span class="cov0" title="0">{
+                                fmt.Println("📂 No saved conversations found.")
+                        }</span> else<span class="cov0" title="0"> {
+                                fmt.Println("\n📂 Saved Conversations:")
+                                fmt.Println("─────────────────────")
+                                for i, conv := range conversations </span><span class="cov0" title="0">{
+                                        fmt.Printf("%d. %s\n", i+1, conv.DisplayName)
+                                }</span>
+                        }
+                        <span class="cov0" title="0">continue</span>
+                }
+
+                // Skip empty input
+                <span class="cov0" title="0">if input == "" </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+
+                // Route the prompt to the appropriate agent
+                <span class="cov0" title="0">agent := router.RoutePrompt(input)
+
+                var response string
+                var err error
+
+                // Use the selected agent to handle the prompt
+                if agent.GetName() == "Default" </span><span class="cov0" title="0">{
+                        // For default agent, include conversation history if available
+                        if lastPrompt != "" &amp;&amp; lastResponse != "" </span><span class="cov0" title="0">{
+                                response, err = utils.GetOpenAIResponse(&amp;client, input, selectedModel, lastPrompt, lastResponse)
+                        }</span> else<span class="cov0" title="0"> {
+                                response, err = utils.GetOpenAIResponse(&amp;client, input, selectedModel)
+                        }</span>
+                } else<span class="cov0" title="0"> {
+                        // For specialized agents, they handle their own context
+                        response, err = agent.Handle(input, &amp;client, selectedModel)
+                }</span>
+
+                <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
+                        fmt.Printf("❌ Error: %v\n", err)
+                        continue</span>
+                }
+
+                <span class="cov0" title="0">fmt.Printf("🤖 Assistant: %s\n", response)
+
+                // Store the last conversation for potential saving
+                lastPrompt = input
+                lastResponse = response</span>
+        }
+
+        <span class="cov0" title="0">if err := scanner.Err(); err != nil </span><span class="cov0" title="0">{
+                log.Printf("Error reading input: %v", err)
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package models
+
+import (
+        "bufio"
+        "fmt"
+        "os"
+        "strconv"
+        "strings"
+)
+
+// ModelInfo represents information about an available model
+type ModelInfo struct {
+        Name        string
+        DisplayName string
+        Description string
+}
+
+// Available models
+var AvailableModels = []ModelInfo{
+        {
+                Name:        "gpt-4.1",
+                DisplayName: "GPT-4.1",
+                Description: "Latest flagship model - $2.00 input / $8.00 output per 1M tokens",
+        },
+        {
+                Name:        "gpt-4.1-mini",
+                DisplayName: "GPT-4.1 Mini",
+                Description: "Balanced performance and cost - $0.40 input / $1.60 output per 1M tokens",
+        },
+        {
+                Name:        "gpt-4.1-nano",
+                DisplayName: "GPT-4.1 Nano",
+                Description: "Ultra-affordable option - $0.10 input / $0.40 output per 1M tokens",
+        },
+        {
+                Name:        "gpt-4.5-preview",
+                DisplayName: "GPT-4.5 Preview",
+                Description: "Most advanced preview model - $75.00 input / $150.00 output per 1M tokens",
+        },
+        {
+                Name:        "o4-mini",
+                DisplayName: "O4 Mini",
+                Description: "Efficient reasoning model - $1.10 input / $4.40 output per 1M tokens",
+        },
+        {
+                Name:        "o3-mini",
+                DisplayName: "O3 Mini",
+                Description: "Advanced reasoning model - $1.10 input / $4.40 output per 1M tokens",
+        },
+}
+
+// SelectModel displays available models and lets user choose one
+func SelectModel() string <span class="cov0" title="0">{
+        fmt.Println("\n🎯 Available Models:")
+        fmt.Println("─────────────────────")
+
+        for i, model := range AvailableModels </span><span class="cov0" title="0">{
+                fmt.Printf("%d. %s - %s\n", i+1, model.DisplayName, model.Description)
+        }</span>
+
+        <span class="cov0" title="0">fmt.Print("\nSelect a model (1-6) [default: 2]: ")
+
+        scanner := bufio.NewScanner(os.Stdin)
+        if scanner.Scan() </span><span class="cov0" title="0">{
+                choice := strings.TrimSpace(scanner.Text())
+
+                // Default to GPT-4.1 Mini if empty
+                if choice == "" </span><span class="cov0" title="0">{
+                        return AvailableModels[1].Name
+                }</span>
+
+                // Parse user choice
+                <span class="cov0" title="0">if num, err := strconv.Atoi(choice); err == nil &amp;&amp; num &gt;= 1 &amp;&amp; num &lt;= len(AvailableModels) </span><span class="cov0" title="0">{
+                        return AvailableModels[num-1].Name
+                }</span>
+        }
+
+        // Default fallback
+        <span class="cov0" title="0">return AvailableModels[1].Name</span>
+}
+
+// GetModelDisplayName returns the display name for a model
+func GetModelDisplayName(modelName string) string <span class="cov8" title="1">{
+        for _, model := range AvailableModels </span><span class="cov8" title="1">{
+                if model.Name == modelName </span><span class="cov8" title="1">{
+                        return model.DisplayName
+                }</span>
+        }
+        <span class="cov8" title="1">return modelName</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package main
+
+import (
+        "fmt"
+        "os"
+        "sort"
+        "strings"
+
+        "allday-term-agent/agents"
+        defaultagent "allday-term-agent/agents/default"
+        mathagent "allday-term-agent/agents/math"
+        weatheragent "allday-term-agent/agents/weather"
+        "allday-term-agent/models"
+)
+
+// AgentRouter manages and routes prompts to appropriate agents
+type AgentRouter struct {
+        registrations []models.AgentRegistration
+}
+
+// NewAgentRouter creates a new agent router with dynamic agent loading
+func NewAgentRouter() *AgentRouter <span class="cov0" title="0">{
+        router := &amp;AgentRouter{
+                registrations: make([]models.AgentRegistration, 0),
+        }
+
+        // Register default agents
+        router.registerDefaultAgents()
+
+        // Sort agents by priority
+        router.sortAgentsByPriority()
+
+        return router
+}</span>
+
+// registerDefaultAgents registers the standard set of agents
+func (r *AgentRouter) registerDefaultAgents() <span class="cov0" title="0">{
+        // Register Math Agent
+        r.RegisterAgent(mathagent.New(), models.AgentRegistration{
+                Priority: models.PriorityHigh,
+                Enabled:  true,
+                Tags:     []string{"math", "calculation", "computation"},
+        })
+
+        // Register Weather Agent (check if API key is available for enhanced features)
+        weatherPriority := models.PriorityMedium
+        weatherTags := []string{"weather", "forecast", "climate"}
+
+        // If weather API key is available, use enhanced agent, otherwise use basic agent
+        if os.Getenv("WEATHER_API_KEY") != "" </span><span class="cov0" title="0">{
+                r.RegisterAgent(weatheragent.NewEnhanced(), models.AgentRegistration{
+                        Priority: weatherPriority,
+                        Enabled:  true,
+                        Tags:     append(weatherTags, "enhanced", "realtime"),
+                })
+        }</span> else<span class="cov0" title="0"> {
+                r.RegisterAgent(weatheragent.NewBasic(), models.AgentRegistration{
+                        Priority: weatherPriority,
+                        Enabled:  true,
+                        Tags:     append(weatherTags, "basic"),
+                })
+        }</span>
+
+        // Register Default Agent (always last)
+        <span class="cov0" title="0">r.RegisterAgent(defaultagent.New(), models.AgentRegistration{
+                Priority: models.PriorityDefault,
+                Enabled:  true,
+                Tags:     []string{"general", "default", "fallback"},
+        })</span>
+}
+
+// RegisterAgent dynamically registers an agent with the router
+func (r *AgentRouter) RegisterAgent(agent agents.Agent, config models.AgentRegistration) <span class="cov0" title="0">{
+        config.Agent = agent
+        r.registrations = append(r.registrations, config)
+}</span>
+
+// UnregisterAgent removes an agent by name
+func (r *AgentRouter) UnregisterAgent(agentName string) bool <span class="cov0" title="0">{
+        for i, reg := range r.registrations </span><span class="cov0" title="0">{
+                if reg.Agent.GetName() == agentName </span><span class="cov0" title="0">{
+                        r.registrations = append(r.registrations[:i], r.registrations[i+1:]...)
+                        return true
+                }</span>
+        }
+        <span class="cov0" title="0">return false</span>
+}
+
+// EnableAgent enables or disables an agent by name
+func (r *AgentRouter) EnableAgent(agentName string, enabled bool) bool <span class="cov0" title="0">{
+        for i := range r.registrations </span><span class="cov0" title="0">{
+                if r.registrations[i].Agent.GetName() == agentName </span><span class="cov0" title="0">{
+                        r.registrations[i].Enabled = enabled
+                        return true
+                }</span>
+        }
+        <span class="cov0" title="0">return false</span>
+}
+
+// sortAgentsByPriority sorts agents by their priority (lower number = higher priority)
+func (r *AgentRouter) sortAgentsByPriority() <span class="cov0" title="0">{
+        sort.Slice(r.registrations, func(i, j int) bool </span><span class="cov0" title="0">{
+                return r.registrations[i].Priority &lt; r.registrations[j].Priority
+        }</span>)
+}
+
+// GetAgentsByTag returns agents that have a specific tag
+func (r *AgentRouter) GetAgentsByTag(tag string) []agents.Agent <span class="cov0" title="0">{
+        var agents []agents.Agent
+        tag = strings.ToLower(tag)
+
+        for _, reg := range r.registrations </span><span class="cov0" title="0">{
+                if !reg.Enabled </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+                <span class="cov0" title="0">for _, agentTag := range reg.Tags </span><span class="cov0" title="0">{
+                        if strings.ToLower(agentTag) == tag </span><span class="cov0" title="0">{
+                                agents = append(agents, reg.Agent)
+                                break</span>
+                        }
+                }
+        }
+        <span class="cov0" title="0">return agents</span>
+}
+
+// RoutePrompt analyzes the prompt and returns the best agent to handle it
+func (r *AgentRouter) RoutePrompt(prompt string) agents.Agent <span class="cov0" title="0">{
+        // Check each enabled agent in priority order
+        for _, reg := range r.registrations </span><span class="cov0" title="0">{
+                if !reg.Enabled </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+
+                // Skip default agent for now (it should be last)
+                <span class="cov0" title="0">if reg.Priority == models.PriorityDefault </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+
+                <span class="cov0" title="0">if reg.Agent.CanHandle(prompt) </span><span class="cov0" title="0">{
+                        fmt.Printf("🎯 Routing to %s Agent\n", reg.Agent.GetName())
+                        return reg.Agent
+                }</span>
+        }
+
+        // Return default agent if no specialized agent can handle it
+        <span class="cov0" title="0">for _, reg := range r.registrations </span><span class="cov0" title="0">{
+                if reg.Enabled &amp;&amp; reg.Priority == models.PriorityDefault </span><span class="cov0" title="0">{
+                        return reg.Agent
+                }</span>
+        }
+
+        // Fallback - should never happen if default agent is properly registered
+        <span class="cov0" title="0">return defaultagent.New()</span>
+}
+
+// ListAgents returns information about all available agents
+func (r *AgentRouter) ListAgents() []agents.Agent <span class="cov0" title="0">{
+        var agents []agents.Agent
+        for _, reg := range r.registrations </span><span class="cov0" title="0">{
+                if reg.Enabled </span><span class="cov0" title="0">{
+                        agents = append(agents, reg.Agent)
+                }</span>
+        }
+        <span class="cov0" title="0">return agents</span>
+}
+
+// ListAllAgents returns all agents (enabled and disabled)
+func (r *AgentRouter) ListAllAgents() []models.AgentRegistration <span class="cov0" title="0">{
+        return r.registrations
+}</span>
+
+// GetAgentStatus returns detailed status information about agents
+func (r *AgentRouter) GetAgentStatus() string <span class="cov0" title="0">{
+        var status strings.Builder
+        status.WriteString("🤖 Agent Status:\n")
+        status.WriteString("─────────────────────\n")
+
+        for _, reg := range r.registrations </span><span class="cov0" title="0">{
+                statusIcon := "✅"
+                if !reg.Enabled </span><span class="cov0" title="0">{
+                        statusIcon = "❌"
+                }</span>
+
+                <span class="cov0" title="0">priorityStr := fmt.Sprintf("P%d", reg.Priority)
+                tags := strings.Join(reg.Tags, ", ")
+
+                status.WriteString(fmt.Sprintf("%s %s Agent (%s) - %s\n",
+                        statusIcon, reg.Agent.GetName(), priorityStr, reg.Agent.GetDescription()))
+                if len(reg.Tags) &gt; 0 </span><span class="cov0" title="0">{
+                        status.WriteString(fmt.Sprintf("   Tags: %s\n", tags))
+                }</span>
+        }
+
+        <span class="cov0" title="0">return status.String()</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package storage
+
+import (
+        "bufio"
+        "fmt"
+        "os"
+        "path/filepath"
+        "strconv"
+        "strings"
+        "time"
+)
+
+// ConversationFile represents a saved conversation file
+type ConversationFile struct {
+        Filename    string
+        Timestamp   time.Time
+        DisplayName string
+}
+
+// ListConversationFiles returns a list of saved conversation files
+func ListConversationFiles() ([]ConversationFile, error) <span class="cov8" title="1">{
+        files, err := os.ReadDir("responses")
+        if err != nil </span><span class="cov8" title="1">{
+                if os.IsNotExist(err) </span><span class="cov8" title="1">{
+                        return []ConversationFile{}, nil // No responses directory yet
+                }</span>
+                <span class="cov0" title="0">return nil, fmt.Errorf("failed to read responses directory: %w", err)</span>
+        }
+
+        <span class="cov8" title="1">var conversations []ConversationFile
+        for _, file := range files </span><span class="cov8" title="1">{
+                if !file.IsDir() &amp;&amp; strings.HasPrefix(file.Name(), "conversation_") &amp;&amp; strings.HasSuffix(file.Name(), ".txt") </span><span class="cov8" title="1">{
+                        // Parse timestamp from filename
+                        timestampStr := strings.TrimPrefix(file.Name(), "conversation_")
+                        timestampStr = strings.TrimSuffix(timestampStr, ".txt")
+
+                        timestamp, err := time.Parse("2006-01-02_15-04-05", timestampStr)
+                        if err != nil </span><span class="cov0" title="0">{
+                                continue</span> // Skip files with invalid timestamp format
+                        }
+
+                        <span class="cov8" title="1">conversations = append(conversations, ConversationFile{
+                                Filename:    file.Name(),
+                                Timestamp:   timestamp,
+                                DisplayName: timestamp.Format("2006-01-02 15:04:05"),
+                        })</span>
+                }
+        }
+
+        // Sort by timestamp (newest first)
+        <span class="cov8" title="1">for i := 0; i &lt; len(conversations)-1; i++ </span><span class="cov8" title="1">{
+                for j := i + 1; j &lt; len(conversations); j++ </span><span class="cov8" title="1">{
+                        if conversations[i].Timestamp.Before(conversations[j].Timestamp) </span><span class="cov8" title="1">{
+                                conversations[i], conversations[j] = conversations[j], conversations[i]
+                        }</span>
+                }
+        }
+
+        <span class="cov8" title="1">return conversations, nil</span>
+}
+
+// SelectConversationFile displays available conversation files and lets user choose one
+func SelectConversationFile() (string, error) <span class="cov0" title="0">{
+        conversations, err := ListConversationFiles()
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+
+        <span class="cov0" title="0">if len(conversations) == 0 </span><span class="cov0" title="0">{
+                return "", fmt.Errorf("no saved conversations found")
+        }</span>
+
+        <span class="cov0" title="0">fmt.Println("\n📂 Saved Conversations:")
+        fmt.Println("─────────────────────")
+
+        for i, conv := range conversations </span><span class="cov0" title="0">{
+                fmt.Printf("%d. %s\n", i+1, conv.DisplayName)
+        }</span>
+
+        <span class="cov0" title="0">fmt.Printf("\nSelect a conversation (1-%d) or press Enter to cancel: ", len(conversations))
+
+        scanner := bufio.NewScanner(os.Stdin)
+        if scanner.Scan() </span><span class="cov0" title="0">{
+                choice := strings.TrimSpace(scanner.Text())
+
+                // Cancel if empty
+                if choice == "" </span><span class="cov0" title="0">{
+                        return "", nil
+                }</span>
+
+                // Parse user choice
+                <span class="cov0" title="0">if num, err := strconv.Atoi(choice); err == nil &amp;&amp; num &gt;= 1 &amp;&amp; num &lt;= len(conversations) </span><span class="cov0" title="0">{
+                        return filepath.Join("responses", conversations[num-1].Filename), nil
+                }</span>
+        }
+
+        <span class="cov0" title="0">return "", fmt.Errorf("invalid selection")</span>
+}
+
+// LoadConversation loads a conversation from file and returns the last prompt and response
+func LoadConversation(filename string) (string, string, string, error) <span class="cov8" title="1">{
+        content, err := os.ReadFile(filename)
+        if err != nil </span><span class="cov8" title="1">{
+                return "", "", "", fmt.Errorf("failed to read file: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">lines := strings.Split(string(content), "\n")
+        var model, prompt, response string
+        var inResponse bool
+
+        for _, line := range lines </span><span class="cov8" title="1">{
+                line = strings.TrimSpace(line)
+
+                if strings.HasPrefix(line, "Model: ") </span><span class="cov8" title="1">{
+                        model = strings.TrimPrefix(line, "Model: ")
+                }</span> else<span class="cov8" title="1"> if strings.HasPrefix(line, "User: ") </span><span class="cov8" title="1">{
+                        prompt = strings.TrimPrefix(line, "User: ")
+                        inResponse = false
+                }</span> else<span class="cov8" title="1"> if strings.HasPrefix(line, "Assistant: ") </span><span class="cov8" title="1">{
+                        response = strings.TrimPrefix(line, "Assistant: ")
+                        inResponse = true
+                }</span> else<span class="cov8" title="1"> if inResponse &amp;&amp; line != "" &amp;&amp; !strings.HasPrefix(line, "=") </span><span class="cov0" title="0">{
+                        // Continue reading multi-line response
+                        if response != "" </span><span class="cov0" title="0">{
+                                response += "\n" + line
+                        }</span> else<span class="cov0" title="0"> {
+                                response = line
+                        }</span>
+                }
+        }
+
+        <span class="cov8" title="1">return model, prompt, response, nil</span>
+}
+
+// StoreOpenAIResponse saves a conversation exchange to a file
+func StoreOpenAIResponse(prompt, response, model string) error <span class="cov8" title="1">{
+        // Create responses directory if it doesn't exist
+        if err := os.MkdirAll("responses", 0755); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create responses directory: %w", err)
+        }</span>
+
+        // Generate filename with timestamp
+        <span class="cov8" title="1">timestamp := time.Now().Format("2006-01-02_15-04-05")
+        filename := fmt.Sprintf("responses/conversation_%s.txt", timestamp)
+
+        // Prepare content
+        content := fmt.Sprintf("Model: %s\nTimestamp: %s\n\n", model, time.Now().Format("2006-01-02 15:04:05"))
+        content += fmt.Sprintf("User: %s\n\n", prompt)
+        content += fmt.Sprintf("Assistant: %s\n", response)
+        content += "\n" + strings.Repeat("=", 50) + "\n\n"
+
+        // Write to file (append mode)
+        file, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to open file: %w", err)
+        }</span>
+        <span class="cov8" title="1">defer file.Close()
+
+        if _, err := file.WriteString(content); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to write to file: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package utils
+
+import (
+        "context"
+        "fmt"
+
+        "github.com/openai/openai-go"
+)
+
+// GetOpenAIResponse handles communication with OpenAI API
+func GetOpenAIResponse(client *openai.Client, prompt string, model string, conversationHistory ...string) (string, error) <span class="cov8" title="1">{
+        // Validate inputs
+        if client == nil </span><span class="cov8" title="1">{
+                return "", fmt.Errorf("client cannot be nil")
+        }</span>
+        <span class="cov8" title="1">if prompt == "" </span><span class="cov8" title="1">{
+                return "", fmt.Errorf("prompt cannot be empty")
+        }</span>
+        <span class="cov8" title="1">if model == "" </span><span class="cov8" title="1">{
+                return "", fmt.Errorf("model cannot be empty")
+        }</span>
+
+        <span class="cov8" title="1">ctx := context.Background()
+
+        // Build messages array
+        var messages []openai.ChatCompletionMessageParamUnion
+
+        // If we have conversation history, add it as context
+        if len(conversationHistory) &gt;= 2 </span><span class="cov8" title="1">{
+                previousPrompt := conversationHistory[0]
+                previousResponse := conversationHistory[1]
+
+                messages = append(messages, openai.UserMessage(previousPrompt))
+                messages = append(messages, openai.AssistantMessage(previousResponse))
+        }</span>
+
+        // Add the current prompt
+        <span class="cov8" title="1">messages = append(messages, openai.UserMessage(prompt))
+
+        completion, err := client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
+                Messages: messages,
+                Model:    model,
+        })
+
+        if err != nil </span><span class="cov8" title="1">{
+                return "", fmt.Errorf("failed to get completion: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">if len(completion.Choices) == 0 </span><span class="cov0" title="0">{
+                return "", fmt.Errorf("no response from OpenAI")
+        }</span>
+
+        <span class="cov0" title="0">return completion.Choices[0].Message.Content, nil</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
