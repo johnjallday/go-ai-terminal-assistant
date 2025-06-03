@@ -1,6 +1,6 @@
 module go-ai-terminal-assistant
 
-go 1.21
+go 1.24
 
 require github.com/openai/openai-go v1.2.0
 
