@@ -1,0 +1,7 @@
+./event.go
+./keycode.go
+./tables.go
+_cgo_gotypes.go
+extern.cgo1.go
+hook.cgo1.go
+_cgo_import.go

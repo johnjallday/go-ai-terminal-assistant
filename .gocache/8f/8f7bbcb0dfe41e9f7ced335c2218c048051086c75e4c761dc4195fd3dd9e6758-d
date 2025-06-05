@@ -1,0 +1,2 @@
+# go-ai-terminal-assistant/cmd/gui
+ld: warning: ignoring duplicate libraries: '-lobjc'

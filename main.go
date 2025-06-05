@@ -7,7 +7,9 @@ import (
 	"os"
 	"strings"
 
+	"go-ai-terminal-assistant/agents"
 	"go-ai-terminal-assistant/models"
+	"go-ai-terminal-assistant/router"
 	"go-ai-terminal-assistant/storage"
 	"go-ai-terminal-assistant/utils"
 
@@ -63,8 +65,8 @@ func main() {
 	)
 
 	// Create agent factory and initialize router
-	factory := NewAgentFactory()
-	router := factory.CreateAgentRouter()
+	factory := router.NewAgentFactory()
+	agentRouter := factory.CreateAgentRouter()
 
 	fmt.Println("🤖 OpenAI Terminal Assistant with Agentic Routing")
 
@@ -73,7 +75,7 @@ func main() {
 	modelDisplayName := models.GetModelDisplayName(selectedModel)
 
 	fmt.Printf("\n✨ Using model: %s\n", modelDisplayName)
-	fmt.Println("Commands: 'quit', '/model', '/agents', '/status', '/config', '/enable <agent>', '/disable <agent>', '/solo <agent>', '/unsolo', '/tag <tag>', '/store', '/load', '/list'")
+	fmt.Println("Commands: 'quit', '/model', '/agents', '/tools', '/status', '/config', '/enable <agent>', '/disable <agent>', '/solo <agent>', '/unsolo', '/tag <tag>', '/store', '/load', '/list'")
 	fmt.Println("─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────")
 
 	scanner := bufio.NewScanner(os.Stdin)
@@ -152,23 +154,37 @@ func main() {
 		if input == "/agents" {
 			fmt.Println("\n🤖 Available Agents:")
 			fmt.Println("─────────────────────")
-			agents := router.ListAgents()
+			agents := agentRouter.ListAgents()
 			for i, agent := range agents {
 				fmt.Printf("%d. %s Agent - %s\n", i+1, agent.GetName(), agent.GetDescription())
 			}
 			continue
 		}
 
+		// Check for tools command
+		if input == "/tools" {
+			fmt.Println("\n🛠️ Available tools:")
+			fmt.Println("─────────────────")
+			for _, ag := range agentRouter.ListAgents() {
+				if tp, ok := ag.(agents.ToolProvider); ok {
+					for _, tool := range tp.Tools() {
+						fmt.Printf(" - %s: %s (%s agent)\n", tool.Name, tool.Description, ag.GetName())
+					}
+				}
+			}
+			continue
+		}
+
 		// Check for agent status command
 		if input == "/status" {
-			fmt.Println(router.GetAgentStatus())
+			fmt.Println(agentRouter.GetAgentStatus())
 			continue
 		}
 
 		// Check for agent enable/disable commands
 		if strings.HasPrefix(input, "/enable ") {
 			agentName := strings.TrimSpace(strings.TrimPrefix(input, "/enable "))
-			if router.EnableAgent(agentName, true) {
+			if agentRouter.EnableAgent(agentName, true) {
 				fmt.Printf("✅ %s Agent enabled\n", agentName)
 			} else {
 				fmt.Printf("❌ Agent '%s' not found\n", agentName)
@@ -178,7 +194,7 @@ func main() {
 
 		if strings.HasPrefix(input, "/disable ") {
 			agentName := strings.TrimSpace(strings.TrimPrefix(input, "/disable "))
-			if router.EnableAgent(agentName, false) {
+			if agentRouter.EnableAgent(agentName, false) {
 				fmt.Printf("❌ %s Agent disabled\n", agentName)
 			} else {
 				fmt.Printf("❌ Agent '%s' not found\n", agentName)
@@ -189,9 +205,22 @@ func main() {
 		// Check for solo agent command
 		if strings.HasPrefix(input, "/solo ") {
 			agentName := strings.TrimSpace(strings.TrimPrefix(input, "/solo "))
-			if router.SoloAgent(agentName) {
+			if agentRouter.SoloAgent(agentName) {
 				fmt.Printf("🎯 Solo mode: Only %s Agent is enabled\n", agentName)
 				fmt.Println("💡 Use '/unsolo' to re-enable all agents")
+				// Print available tools for the soloed agent, if any
+				for _, ag := range agentRouter.ListAgents() {
+					if tp, ok := ag.(agents.ToolProvider); ok {
+						tools := tp.Tools()
+						if len(tools) > 0 {
+							fmt.Println()
+							fmt.Println("🛠️  Available tools:")
+							for _, tool := range tools {
+								fmt.Printf(" - %s: %s\n", tool.Name, tool.Description)
+							}
+						}
+					}
+				}
 			} else {
 				fmt.Printf("❌ Agent '%s' not found\n", agentName)
 			}
@@ -200,7 +229,7 @@ func main() {
 
 		// Check for unsolo command
 		if input == "/unsolo" {
-			router.UnsoloAgents()
+			agentRouter.UnsoloAgents()
 			fmt.Println("✅ All agents re-enabled")
 			continue
 		}
@@ -208,7 +237,7 @@ func main() {
 		// Check for tag-based agent listing
 		if strings.HasPrefix(input, "/tag ") {
 			tag := strings.TrimSpace(strings.TrimPrefix(input, "/tag "))
-			agents := router.GetAgentsByTag(tag)
+			agents := agentRouter.GetAgentsByTag(tag)
 			if len(agents) == 0 {
 				fmt.Printf("🏷️ No agents found with tag '%s'\n", tag)
 			} else {
@@ -270,7 +299,7 @@ func main() {
 		}
 
 		// Route the prompt to the appropriate agent
-		agent := router.RoutePrompt(input)
+		agent := agentRouter.RoutePrompt(input)
 
 		var response string
 		var err error

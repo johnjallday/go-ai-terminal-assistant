@@ -76,10 +76,12 @@ go run .
 ### 특수 명령어
 
 - **`/agents`** - 사용 가능한 모든 에이전트와 기능 목록 표시
+- **`/tools`** - 사용 가능한 모든 도구 목록 표시
 - **`/store`** - 마지막 질문과 응답을 `responses/` 디렉토리에 타임스탬프가 포함된 파일로 저장
 - **`/load`** - 저장된 대화 목록을 보여주고 계속할 대화 선택
 - **`/list`** - 불러오지 않고 저장된 모든 대화 표시
 - **`/model`** - 대화 중 다른 AI 모델로 변경
+- **`make reaper-script NAME=<스크립트_이름>`** - Reaper Agent용 새 Lua 스크립트 템플릿 생성
 
 ### 문맥 인식 대화
 
@@ -106,14 +108,16 @@ go run .
 Select a model (1-6) [default: 2]: 2
 
 ✨ Using model: GPT-4.1 Mini
-Type 'quit', 'exit', '/model' to change model, '/agents' to list agents, '/store' to save last response, '/load' to load a conversation, or '/list' to see saved conversations
+Type 'quit', 'exit', '/model' to change model, '/agents' to list agents, '/tools' to list tools, '/store' to save last response, '/load' to load a conversation, or '/list' to see saved conversations
 
 💬 You: /agents
 🤖 사용 가능한 에이전트:
 ─────────────────────
 1. Math Agent - 수학 계산, 문제 및 개념 전문 에이전트
 2. Enhanced Weather Agent - 실시간 데이터를 갖춘 고급 날씨 에이전트 (WEATHER_API_KEY 필요) 및 AI 백업
-3. Default Agent - OpenAI 모델을 사용한 일반 대화 에이전트
+3. Script Builder Agent - 사용자의 요구사항에 따라 Reaper Lua 스크립트를 생성하는 에이전트
+4. Reaper Agent - macOS에서 Reaper 실행 및 Lua 스크립트 실행 에이전트
+5. Default Agent - OpenAI 모델을 사용한 일반 대화 에이전트
 
 💬 You: 180의 25%는 얼마야?
 🎯 수학 에이전트로 라우팅

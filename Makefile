@@ -128,6 +128,20 @@ dev-setup: tidy build test-unit
 dev-check: fmt lint test-unit
 	@echo "✅ Development check complete!"
 
+# Create a new Reaper Lua script template in agents/reaper/custom_scripts
+# Usage: make reaper-script NAME=script_name
+reaper-script:
+	@if [ -z "${NAME}" ]; then \
+		echo "Usage: make reaper-script NAME=script_name"; exit 1; \
+	fi
+	@dst=agents/reaper/custom_scripts/${NAME}.lua; \
+	if [ -e "$$dst" ]; then \
+		echo "Error: $$dst already exists"; exit 1; \
+	fi; \
+	mkdir -p $$(dirname "$$dst"); \
+	printf "--[[\nTool: %s\nDescription: TODO: add description\n--]]\n\n-- Main function\nfunction Main()\n    -- TODO: implement script logic\nend\n\nMain()\n" "${NAME}" > "$$dst"; \
+	echo "Created new Reaper script template: $$dst"
+
 # Help
 help:
 	@echo "AI Terminal Assistant Build System"
@@ -153,6 +167,7 @@ help:
 	@echo "  tidy           - Tidy dependencies"
 	@echo "  dev-setup      - Set up development environment"
 	@echo "  dev-check      - Quick development check"
+	@echo "  reaper-script  - Scaffold a new Reaper Lua script template (NAME=<script_name>)"
 	@echo "  help           - Show this help message"
 	@echo ""
 	@echo "Environment variables:"

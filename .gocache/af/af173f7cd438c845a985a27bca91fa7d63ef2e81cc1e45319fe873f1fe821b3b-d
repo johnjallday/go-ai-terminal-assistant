@@ -1,0 +1,3 @@
+./server.go
+./server_daemon.go
+./server_standalone.go

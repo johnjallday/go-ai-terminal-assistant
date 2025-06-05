@@ -16,3 +16,14 @@ type AgentResult struct {
 	Response  string
 	Error     error
 }
+
+// Tool represents an actionable command or script provided by an agent.
+type Tool struct {
+	Name        string
+	Description string
+}
+
+// ToolProvider is implemented by agents that expose tools for additional actions.
+type ToolProvider interface {
+	Tools() []Tool
+}

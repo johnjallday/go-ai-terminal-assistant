@@ -71,6 +71,47 @@ How humid is it in Miami?
 What's the forecast for San Francisco?
 Is there a storm coming to Chicago?
 ```
+### 🛠️ Script Builder Agent
+**Priority:** 10 (Low)  
+**Tags:** `["script", "builder", "reaper", "lua"]`  
+**Purpose:** Use LLM to generate Reaper Lua scripts based on user requirements
+
+**Triggers on:**
+- Keywords: `build script`, `generate script`, `create script`, `scaffold script`
+- Mentions: `reaper` and `script`
+
+**Example prompts:**
+```
+build script to auto color tracks
+generate a script that renames tracks based on track number
+create a Lua tool to apply a fade-out effect on selected items
+```
+
+### 🎛️ Reaper Agent
+**Priority:** 10 (Low)  
+**Tags:** `["reaper", "macos", "scripts"]`  
+**Purpose:** Launch Reaper and run custom Lua scripts on macOS
+
+**Triggers on:**
+- Commands: `launch reaper`, `list scripts`
+- File extensions: `.lua`
+- Script name aliases (without extension), e.g. `auto color tracks`, `rearrange tracks`
+
+**Example prompts:**
+```
+launch Reaper
+list scripts
+run myscript.lua
+auto color tracks
+```
+
+#### Building custom scripts
+
+Use the provided Makefile target to scaffold a new Lua script template for the Reaper Agent:
+```bash
+make reaper-script NAME=<script_name>
+```
+This will create `agents/reaper/custom_scripts/<script_name>.lua` with a basic template. Edit the generated file to implement your custom script logic. The new script will automatically be detected and available as a tool.
 
 ### 🔍 Example Agents (Optional)
 **Priority:** 5 (Medium)  

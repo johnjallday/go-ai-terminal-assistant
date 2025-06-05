@@ -20,6 +20,7 @@ export WEATHER_API_KEY='your-weatherapi-key-here'
 | Command | Description |
 |---------|-------------|
 | `/agents` | List all available agents |
+| `/tools` | List all available tools |
 | `/status` | Show agent status and priorities |
 | `/enable <agent>` | Enable a specific agent |
 | `/disable <agent>` | Disable a specific agent |
