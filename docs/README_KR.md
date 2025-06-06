@@ -80,6 +80,7 @@ go run .
 - **`/store`** - 마지막 질문과 응답을 `responses/` 디렉토리에 타임스탬프가 포함된 파일로 저장
 - **`/load`** - 저장된 대화 목록을 보여주고 계속할 대화 선택
 - **`/list`** - 불러오지 않고 저장된 모든 대화 표시
+- **`/clear`** - 대화 화면을 지웁니다 (또는 Ctrl+L)
 - **`/model`** - 대화 중 다른 AI 모델로 변경
 - **`make reaper-script NAME=<스크립트_이름>`** - Reaper Agent용 새 Lua 스크립트 템플릿 생성
 
@@ -213,6 +214,14 @@ GOOS=linux GOARCH=amd64 go build -o allday-term-agent-linux
 **macOS용 빌드 (Windows/Linux에서):**
 ```bash
 GOOS=darwin GOARCH=amd64 go build -o allday-term-agent-macos
+```
+
+### 플러그인 에이전트 빌드
+
+```bash
+# 플러그인 디렉토리에 개별 에이전트를 Go 플러그인(.so)으로 빌드
+go build -buildmode=plugin -o plugins/reaper.so ./agents/reaper
+go build -buildmode=plugin -o plugins/math.so ./agents/math
 ```
 
 ### 최적화된 빌드

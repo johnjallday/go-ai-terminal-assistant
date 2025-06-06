@@ -142,6 +142,15 @@ reaper-script:
 	printf "--[[\nTool: %s\nDescription: TODO: add description\n--]]\n\n-- Main function\nfunction Main()\n    -- TODO: implement script logic\nend\n\nMain()\n" "${NAME}" > "$$dst"; \
 	echo "Created new Reaper script template: $$dst"
 
+
+# Build agent plugins (Go plugins in .so form) under the plugins/ directory
+.PHONY: plugins
+plugins: $(PLUGIN_DIR)/math.so $(PLUGIN_DIR)/reaper.so $(PLUGIN_DIR)/toolbuilder.so $(PLUGIN_DIR)/weather.so $(PLUGIN_DIR)/default.so
+
+$(PLUGIN_DIR)/%.so:
+	@mkdir -p $(PLUGIN_DIR)
+	@echo "Building plugin for agent: $*"
+	@go build -buildmode=plugin -o $@ ./agents/$*
 # Help
 help:
 	@echo "AI Terminal Assistant Build System"
@@ -167,6 +176,7 @@ help:
 	@echo "  tidy           - Tidy dependencies"
 	@echo "  dev-setup      - Set up development environment"
 	@echo "  dev-check      - Quick development check"
+	@echo "  plugins        - Build agent plugins (.so files) under plugins/ directory"
 	@echo "  reaper-script  - Scaffold a new Reaper Lua script template (NAME=<script_name>)"
 	@echo "  help           - Show this help message"
 	@echo ""

@@ -1,3 +1,4 @@
 - [x] tab for agents interactions for solo/unsolo priorities #created:2025-06-05 #workspace:johnj-programming #completed:2025-06-05
 - [ ] external CLI add as agent #created:2025-06-05 #workspace:johnj-programming
 - [ ] custom_script caller open -a Reaper #created:2025-06-05 #workspace:johnj-programming
+- [ ] plugin manager #created:2025-06-05 #workspace:johnj-programming

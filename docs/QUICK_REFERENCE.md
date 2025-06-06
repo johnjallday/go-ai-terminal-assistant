@@ -32,6 +32,7 @@ export WEATHER_API_KEY='your-weatherapi-key-here'
 | `/store` | Save the last conversation |
 | `/load` | Load a saved conversation |
 | `/list` | List saved conversations |
+| `/clear` | Clear the screen (or press Ctrl+L) |
 | `quit` or `exit` | Exit the application |
 
 ## 🤖 Available AI Models
@@ -84,6 +85,22 @@ export WEATHER_API_KEY='your-weatherapi-key-here'
 - Saved conversations preserve model and context information
 - Weather agent automatically selects Enhanced/Basic based on API key availability
 - Enable example agents with environment variables for specialized tasks
+
+## 🧩 Plugin Agents
+
+You can compile individual agents as Go plugins and load them dynamically at startup.  
+Set the `AGENT_PLUGIN_DIR` environment variable to the folder containing your `.so` plugins (defaults to `./plugins`).
+
+```bash
+# Build the Reaper agent as a plugin
+go build -buildmode=plugin -o plugins/reaper.so ./agents/reaper
+
+# Build the Math agent as a plugin
+go build -buildmode=plugin -o plugins/math.so ./agents/math
+
+# Run the CLI with your plugins loaded
+AGENT_PLUGIN_DIR=./plugins ./allday-term-agent
+```
 
 ## 🔧 Environment Setup
 

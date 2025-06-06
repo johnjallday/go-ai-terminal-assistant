@@ -75,7 +75,7 @@ func main() {
 	modelDisplayName := models.GetModelDisplayName(selectedModel)
 
 	fmt.Printf("\n✨ Using model: %s\n", modelDisplayName)
-	fmt.Println("Commands: 'quit', '/model', '/agents', '/tools', '/status', '/config', '/enable <agent>', '/disable <agent>', '/solo <agent>', '/unsolo', '/tag <tag>', '/store', '/load', '/list'")
+	fmt.Println("Commands: 'quit', '/model', '/agents', '/tools', '/status', '/config', '/enable <agent>', '/disable <agent>', '/solo <agent>', '/unsolo', '/tag <tag>', '/store', '/load', '/list', '/clear'")
 	fmt.Println("─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────")
 
 	scanner := bufio.NewScanner(os.Stdin)
@@ -89,7 +89,12 @@ func main() {
 			break
 		}
 
-		input := strings.TrimSpace(scanner.Text())
+		rawInput := scanner.Text()
+		if rawInput == "\f" {
+			fmt.Print("\033[H\033[2J")
+			continue
+		}
+		input := strings.TrimSpace(rawInput)
 
 		// Check for exit commands
 		if input == "quit" || input == "exit" {
@@ -147,6 +152,13 @@ func main() {
 					fmt.Println("💡 You can now continue the conversation from where it left off!")
 				}
 			}
+			continue
+		}
+
+		// Check for clear screen command
+		if input == "/clear" {
+			// ANSI escape to clear terminal screen
+			fmt.Print("\033[H\033[2J")
 			continue
 		}
 

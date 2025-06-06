@@ -32,7 +32,7 @@ func (a *ToolBuilderAgent) Handle(prompt string, client *openai.Client, model st
 		openai.SystemMessage(sysCtx),
 		openai.UserMessage(prompt),
 	}
-  :resp, err := client.Chat.Completions.New(context.Background(), openai.ChatCompletionNewParams{
+	resp, err := client.Chat.Completions.New(context.Background(), openai.ChatCompletionNewParams{
 		Model:    model,
 		Messages: messages,
 	})

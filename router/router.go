@@ -3,6 +3,8 @@ package router
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"plugin"
 	"sort"
 	"strings"
 
@@ -28,6 +30,9 @@ func NewAgentRouter() *AgentRouter {
 
 	// Register default agents
 	router.registerDefaultAgents()
+
+	// Load any agent plugins from the plugin directory
+	router.loadPlugins()
 
 	// Sort agents by priority
 	router.sortAgentsByPriority()
@@ -83,6 +88,54 @@ func (r *AgentRouter) registerDefaultAgents() {
 		Enabled:  true,
 		Tags:     []string{"general", "default", "fallback"},
 	})
+}
+
+// loadPlugins scans the plugin directory for Go plugin files and registers any agents they export.
+func (r *AgentRouter) loadPlugins() {
+	pluginDir := os.Getenv("AGENT_PLUGIN_DIR")
+	if pluginDir == "" {
+		pluginDir = "plugins"
+	}
+	entries, err := os.ReadDir(pluginDir)
+	if err != nil {
+		return
+	}
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".so") {
+			continue
+		}
+		path := filepath.Join(pluginDir, entry.Name())
+		p, err := plugin.Open(path)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "plugin open error (%s): %v\n", path, err)
+			continue
+		}
+		newSym, err := p.Lookup("NewAgent")
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "plugin lookup NewAgent error: %v\n", err)
+			continue
+		}
+		newFn, ok := newSym.(func() agents.Agent)
+		if !ok {
+			fmt.Fprintf(os.Stderr, "plugin NewAgent has wrong signature: %T\n", newSym)
+			continue
+		}
+		regSym, err := p.Lookup("GetAgentRegistration")
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "plugin lookup GetAgentRegistration error: %v\n", err)
+			continue
+		}
+		getRegFn, ok := regSym.(func() models.AgentRegistration)
+		if !ok {
+			fmt.Fprintf(os.Stderr, "plugin GetAgentRegistration has wrong signature: %T\n", regSym)
+			continue
+		}
+		agent := newFn()
+		reg := getRegFn()
+		reg.Agent = agent
+		r.RegisterAgent(agent, reg)
+		fmt.Printf("🧩 Loaded plugin agent: %s from %s\n", agent.GetName(), path)
+	}
 }
 
 // RegisterAgent dynamically registers an agent with the router

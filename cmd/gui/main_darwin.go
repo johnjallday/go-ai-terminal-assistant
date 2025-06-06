@@ -229,6 +229,10 @@ func handleCommand(input string, session *chat.ChatSession, historyText *widget.
 	cmd := parts[0]
 	args := parts[1:]
 	switch cmd {
+	case "/clear":
+		historyText.SetText("")
+		scroll.ScrollToBottom()
+		return
 	case "/help", "/h":
 		var lines []string
 		for _, c := range chat.SlashCommands {

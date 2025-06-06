@@ -21,5 +21,6 @@ var SlashCommands = []CommandInfo{
 	{"/config", "Show agent configuration"},
 	{"/store", "Store last conversation to file"},
 	{"/load", "Load a conversation from file"},
+	{"/clear", "Clear the screen (or Ctrl+L)"},
 	{"/list", "List saved conversations"},
 }
